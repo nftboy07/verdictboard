@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VerdictBoard — cost per verified correct answer (Telegraph testnet)</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>⚖️ VerdictBoard</h1>
+  <p class="sub">The evaluator agent that prices Miner correctness — Mission 10 (Model Economy),
+  Telegraph Hackathon Season II. Every score links to its <code>signal_hash</code> and is only
+  published when the network verification returns <code>verified: true</code>.</p>
+  <p class="net">Network: Telegraph <strong>testnet</strong> (<code>devnode.telegraphprotocol.com</code>, Ethereum Sepolia) · Node status: <span id="node-status">checking…</span></p>
+</header>
+
+<main>
+  <section id="ask-panel">
+    <h2>Fire a paid ask <span class="price">($0.01 testnet USDC per call, paid server-side via x402)</span></h2>
+
+    <div class="ask-grid">
+      <div class="card">
+        <h3>Control intent — CRYPTO_PRICE_USD ✅ live</h3>
+        <label>Symbol <input id="cp-symbol" value="BTC" size="6"></label>
+        <button id="cp-fire">Fire paid ask</button>
+        <div id="cp-out" class="out">No ask yet this session.</div>
+      </div>
+
+      <div class="card">
+        <h3>Eval intent — LLM_OUTPUT_EVALUATION_GENERAL 🔁 retry slot</h3>
+        <p class="warn">Node returned HTTP 504 on both paid attempts on 11 Nov (payments settled,
+        no signal returned). This slot retries the same paid pattern and slots straight into the
+        leaderboard when the node recovers. Each attempt is a real $0.01 testnet payment.</p>
+        <label>Task <textarea id="ev-task" rows="2">What is 17 + 25?</textarea></label>
+        <label>Output to grade <textarea id="ev-output" rows="2">The answer is 42.</textarea></label>
+        <button id="ev-fire">Fire paid eval ask (1 attempt)</button>
+        <div id="ev-out" class="out">No eval ask yet this session.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="board">
+    <h2>Leaderboard — cost per verified correct answer <span class="price">(scaffold: rows from this browser's verified eval asks)</span></h2>
+    <div id="board-summary" class="out">No verified eval rows yet — the eval intent must answer first.</div>
+    <table id="board-table" hidden>
+      <thead><tr><th>When</th><th>Task</th><th>Score</th><th>Cost</th><th>Signal proof</th><th>Verified</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="feed-panel">
+    <h2>Live daemon feed — verified signals on the testnet</h2>
+    <p class="sub">Straight from <code>GET /daemon/api/questions</code> (free, no auth).
+    Total in window: <span id="feed-total">…</span> · auto-refreshes every 30 s.</p>
+    <div id="feed" class="feed">Loading live feed…</div>
+  </section>
+</main>
+
+<footer>
+  <p>Testnet only — no mainnet funds. Payments are signed server-side; the wallet key never
+  reaches this page. Built for the Telegraph Hackathon Season II (hackathon entry; prizes apply).</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
