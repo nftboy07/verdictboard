@@ -11,6 +11,7 @@
  *   GET  /              -> public/index.html (static app)
  *   GET  /api/health    -> passthrough of the node daemon health (free)
  *   GET  /api/feed      -> passthrough of GET {NODE}/daemon/api/questions (free)
+ *   GET  /api/log       -> parsed local data/ask-log.jsonl (this rig's own asks; free, local)
  *   POST /api/ask       -> paid Telegraph ask via the x402 pattern from
  *                          ../telegraph-request.mjs (step 7). Body:
  *                          { intent, params, attempts? }
@@ -18,6 +19,11 @@
  *                          - LLM_OUTPUT_EVALUATION_GENERAL (eval intent; retry slot —
  *                            the node currently 504s on it; each attempt is a real
  *                            $0.01 payment, attempts defaults to 1, max 3)
+ *
+ * Offline mode (VERDICTBOARD_OFFLINE=1): /api/health reports offline without
+ * contacting the node, /api/feed serves the bundled data/ask-log.jsonl, and
+ * /api/ask refuses with 503 — nothing is paid and nothing is faked. For demos
+ * and smoke tests when the node / network is unreachable.
  *
  * Safety: binds 127.0.0.1 only; per-payment cap enforced by x402 spendControls
  * (max 100000 μUSDC = $0.10; floor is $0.01) AND a server-side run cap
@@ -38,6 +44,7 @@ const SEPOLIA_USDC = "0xcc194e1a843B658526D0D5C431f670028582Ae17";
 const PORT = Number(process.env.PORT ?? 4317);
 const RUN_CAP_UUSDC = Number(process.env.VERDICTBOARD_RUN_CAP_UUSDC ?? 500_000); // $0.50
 const HTTP_TIMEOUT_MS = 240_000; // node + this VM's egress proxy can be slow (504s seen at ~66 s)
+const OFFLINE = process.env.VERDICTBOARD_OFFLINE === "1";
 
 const ALLOWED_INTENTS = new Set(["CRYPTO_PRICE_USD", "LLM_OUTPUT_EVALUATION_GENERAL"]);
 let spentUusdc = 0; // payments the server believes settled (200s and post-payment failures)
@@ -50,25 +57,35 @@ async function logAsk(entry) {
 }
 
 /* ---- wallet (lazy, in-process only) ------------------------------------ */
-let _account = null;
-function loadAccount() {
-  if (_account) return _account;
+/* Key and paid-fetch wrapper are cached SEPARATELY. (Scaffold bug fixed
+ * 16 Nov: the first version cached the derived account object in the same
+ * variable loadAccount() returned, so the SECOND paid ask in a process
+ * passed an account object to privateKeyToAccount() and threw — the 11 Nov
+ * smoke test only ever made one ask, so it never fired.) */
+let _key = null;
+function loadKey() {
+  if (_key) return _key;
+  const envKey = process.env.EVM_PRIVATE_KEY;
+  if (envKey && /^0x[0-9a-fA-F]{64}$/.test(envKey.trim())) { _key = envKey.trim(); return _key; }
   const envText = readFileSync(new URL("../secrets/telegraph-testnet-wallet.env", import.meta.url), "utf8");
   const m = envText.match(/^EVM_PRIVATE_KEY=(0x[0-9a-fA-F]{64})\s*$/m);
-  if (!m) throw new Error("EVM_PRIVATE_KEY not found in ../secrets/telegraph-testnet-wallet.env");
-  return m[1]; // caller wraps with privateKeyToAccount; value never leaves this module's callers
+  if (!m) throw new Error("EVM_PRIVATE_KEY not found in env or ../secrets/telegraph-testnet-wallet.env");
+  _key = m[1]; // value never logged/returned; only the derived address leaves this module
+  return _key;
 }
+let _paid = null;
 async function makePaidFetch() {
+  if (_paid) return _paid;
   const { wrapFetchWithPaymentFromConfig } = await import("@x402/fetch");
   const { ExactEvmScheme } = await import("@x402/evm");
   const { privateKeyToAccount } = await import("viem/accounts");
-  const account = privateKeyToAccount(loadAccount());
-  _account = account;
+  const account = privateKeyToAccount(loadKey());
   const fetchWithPayment = wrapFetchWithPaymentFromConfig(fetch, {
     schemes: [{ network: SEPOLIA_CHAIN, client: new ExactEvmScheme(account) }],
     spendControls: { allowedAssets: [{ network: SEPOLIA_CHAIN, asset: SEPOLIA_USDC, maxAmountPerPayment: "100000" }] },
   });
-  return { fetchWithPayment, payer: account.address };
+  _paid = { fetchWithPayment, payer: account.address };
+  return _paid;
 }
 
 /* ---- one paid ask attempt ---------------------------------------------- */
@@ -100,6 +117,14 @@ async function paidAskOnce(intent, params) {
   return { http_status: res.status, payer, body: body ?? text.slice(0, 500), receipt, signal_hash: signalHash, verification };
 }
 
+/* ---- local ask log (bundled data; used by /api/log + offline feed) ------- */
+async function readAskLog() {
+  try {
+    const text = await readFile(new URL("ask-log.jsonl", logDir), "utf8");
+    return text.split("\n").filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  } catch { return []; }
+}
+
 /* ---- HTTP server --------------------------------------------------------- */
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json" };
 function sendJson(res, status, obj) { const t = JSON.stringify(obj, null, 2); res.writeHead(status, { "Content-Type": "application/json" }); res.end(t); }
@@ -108,18 +133,39 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
   try {
     if (url.pathname === "/api/health") {
+      if (OFFLINE) return sendJson(res, 200, { status: "offline", mode: "VERDICTBOARD_OFFLINE=1", note: "node not contacted — bundled data only; paid asks disabled" });
       const r = await fetch(`${NODE_BASE}/daemon/health`, { signal: AbortSignal.timeout(60_000) });
       return sendJson(res, r.status, await r.json().catch(() => ({})));
     }
     if (url.pathname === "/api/feed") {
+      if (OFFLINE) {
+        const entries = await readAskLog();
+        return sendJson(res, 200, {
+          source: "bundled data/ask-log.jsonl (offline mode — this rig's own recorded asks, NOT the live daemon feed)",
+          total: entries.length,
+          results: entries.map((e) => ({
+            signal_hash: e.signal_hash ?? null,
+            routing: { intent: e.intent ?? "?", subnet_name: e.via ? `via ${e.via}` : "via server" },
+            status: e.verified === true ? "verified" : "logged",
+            question: { text: `${e.intent} ${JSON.stringify(e.params ?? {})}` },
+            execution: { cost_usd: e.http_status === 200 || e.http_status === 504 ? 0.01 : null, duration_ms: null },
+            created_at: e.at ?? "",
+          })),
+        });
+      }
       const since = url.searchParams.get("since_hours") ?? "12";
       const limit = url.searchParams.get("limit") ?? "25";
       const r = await fetch(`${NODE_BASE}/daemon/api/questions?since_hours=${encodeURIComponent(since)}&limit=${encodeURIComponent(limit)}`, { signal: AbortSignal.timeout(60_000) });
       return sendJson(res, r.status, await r.json().catch(() => ({})));
     }
+    if (url.pathname === "/api/log") {
+      return sendJson(res, 200, { source: "data/ask-log.jsonl", entries: await readAskLog() });
+    }
     if (url.pathname === "/api/ask" && req.method === "POST") {
+      if (OFFLINE) return sendJson(res, 503, { error: "offline mode (VERDICTBOARD_OFFLINE=1): paid asks are disabled — nothing was paid. Unset VERDICTBOARD_OFFLINE to run live." });
       const chunks = []; for await (const c of req) chunks.push(c);
-      const { intent, params, attempts = 1 } = JSON.parse(Buffer.concat(chunks).toString() || "{}");
+      let parsed; try { parsed = JSON.parse(Buffer.concat(chunks).toString() || "{}"); } catch { return sendJson(res, 400, { error: "request body must be valid JSON" }); }
+      const { intent, params, attempts = 1 } = parsed;
       if (!ALLOWED_INTENTS.has(intent)) return sendJson(res, 400, { error: `intent not allowed in scaffold: ${intent}` });
       if (!params || typeof params !== "object") return sendJson(res, 400, { error: "params object required" });
       const tries = Math.max(1, Math.min(3, Number(attempts) || 1));
@@ -156,4 +202,4 @@ const server = createServer(async (req, res) => {
     return sendJson(res, 500, { error: e.message });
   }
 });
-server.listen(PORT, "127.0.0.1", () => console.log(`VerdictBoard scaffold: http://127.0.0.1:${PORT}  (testnet only; run cap ${RUN_CAP_UUSDC} μUSDC)`));
+server.listen(PORT, "127.0.0.1", () => console.log(`VerdictBoard scaffold: http://127.0.0.1:${PORT}  (testnet only; run cap ${RUN_CAP_UUSDC} μUSDC${OFFLINE ? "; OFFLINE MODE — bundled data only, paid asks disabled" : ""})`));

@@ -61,3 +61,65 @@ or paste into the Telegraph Discord under the owner's account.
   batch agent (`agent.mjs` per ../SUBMISSION.md §4), public repo + hosted page,
   and the 2–5 min demo video remain for the build phase before 1 Dec 23:59 UTC.
 - Wallet after smoke test: ≈9.96 test USDC / ≈0.21 Sepolia ETH (one $0.01 ask spent).
+
+## Build finish — status (16 Nov 2026, offline session; VM egress down)
+
+Audit + build pass over the scaffold. Eval retry wiring left exactly as
+designed (front-end always sends `attempts: 1`). No live requests fired.
+
+**Bug found & fixed:** `server.mjs` cached the derived account object in the
+same variable `loadAccount()` returned, so the *second* paid ask in a process
+passed an account object to `privateKeyToAccount()` and threw. The 11 Nov
+smoke test made exactly one ask, so it never fired — but every retry attempt
+and every second UI ask would have. Fixed with separate `_key` / `_paid`
+caches (+ `EVM_PRIVATE_KEY` env support, secrets-file fallback). Regression
+test (verbatim fixed functions, two `makePaidFetch()` calls): PASS, payer
+matches the recorded 11 Nov payer; no key material printed.
+
+### Done (offline-verified 16 Nov)
+- `evalset.json` — fixed public eval set per ../SUBMISSION.md §3: 6 tasks × 2
+  graded outputs, 4 subjects, correct/partial/wrong mix with desk ground
+  truth, + unpaid break-it case (missing `output`). Schema-validated.
+- `agent.mjs` — batch agent per ../SUBMISSION.md §4 (x402 pattern + $0.10
+  per-payment spendControls identical to server; run spend limit; aborts
+  after 2 consecutive 504s; full per-call evidence; writes
+  `data/agent-results.json` + `data/agent-runs/<stamp>.json`; appends to
+  `data/ask-log.jsonl`). `--dry-run` PASS (set valid, key located, no calls).
+- `publish.mjs` — leaderboard publisher. `--self-test` 9/9 PASS (verified-only
+  scoring, settled-504 spend counting, unattempted = no spend, ranking).
+  Fallback render from bundled `data/ask-log.jsonl` generated
+  `public/leaderboard.html` + `public/evidence-bundle.json`, honestly
+  labelled "No batch-agent run yet".
+- `server.mjs` offline mode (`VERDICTBOARD_OFFLINE=1`) + `GET /api/log` +
+  malformed-JSON → 400 (was 500). Offline smoke test PASS: `/`, `/app.js`,
+  `/style.css`, `/leaderboard.html` 200; `/api/health` offline; `/api/feed`
+  serves the bundled log (total=1, our verified smoke signal); `/api/log`
+  returns the entry; `POST /api/ask` → 503, nothing paid. Live-mode bad JSON
+  → 400, disallowed intent → 400 (both answered before any network call).
+- `package.json` + `.env.example` (deps/versions match the working tree;
+  SUBMISSION.md §4's reviewer flow now has the files it references).
+- Front-end: "Recent asks from this rig" section fed by `/api/log`; board
+  section links `leaderboard.html`.
+- `node --check` PASS on server.mjs, agent.mjs, publish.mjs, public/app.js.
+  Key-hygiene grep of `public/`: clean. Tests did not mutate
+  `data/ask-log.jsonl` (still the single 11 Nov line) and fabricated no
+  agent results.
+
+### Done but UNTESTED-LIVE (written carefully, syntax-checked, never fired)
+- `agent.mjs` live path: paid eval loop, signal verification, 504
+  abort-after-2, spend-limit cut-off, results writing. Uses the identical
+  x402 config as the live-proven server path, but no live eval ask has ever
+  returned from this node, so the 200-branch is unproven end-to-end.
+- Break-it invalid-params test (expects pre-payment HTTP 400 per
+  ../SUBMISSION.md §4; records the actual status if the node differs).
+- `publish.mjs` rendering of a real agent run (math self-tested on synthetic
+  rows; HTML path exercised only via the ask-log fallback).
+- Front-end `/api/log` rendering in a real browser (endpoint JSON verified
+  via curl; app.js syntax-checked).
+
+### Still blocked on network
+- Whether the eval intent still 504s — the open question since 11 Nov.
+- First real `agent.mjs` run → first real leaderboard (12 graded outputs,
+  worst case $0.12 at floor).
+- Demo video with live rows; the H2 submission itself.
+- Wallet unchanged since 11 Nov: ≈9.96 test USDC / ≈0.21 Sepolia ETH.
