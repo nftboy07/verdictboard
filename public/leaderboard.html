@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VerdictBoard leaderboard — cost per verified correct answer</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0 auto;max-width:980px;padding:20px;background:#0d1117;color:#e6edf3}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 20px}
+th,td{border:1px solid #30363d;padding:6px 8px;text-align:left}
+a{color:#58a6ff}.sub{color:#9da7b3}footer{color:#9da7b3;font-size:13px;border-top:1px solid #30363d;padding-top:10px}
+</style></head><body>
+<h1>⚖️ VerdictBoard — leaderboard</h1>
+<p class="sub">Cost per <strong>verified</strong> correct answer (Telegraph Hackathon Season II, Mission 10 — Model Economy).
+Scores count only when <code>GET /engine/v1/signal/{hash}</code> returns <code>verified: true</code>; "correct" = eval score ≥ 0.8.
+Network: Telegraph <strong>testnet</strong> (Ethereum Sepolia) — no mainnet funds. Generated 2026-11-16T13:56:27.545Z by publish.mjs.</p>
+
+  <h2>No batch-agent run yet</h2>
+  <p>No <code>data/agent-results.json</code> exists — the batch agent (agent.mjs) has not completed a run.
+     The interactive board in <a href="index.html">the scaffold app</a> still collects verified eval rows
+     from the retry slot. What HAS been verified from this rig so far is in the local ask log below;
+     every row links to its signal proof.</p>
+  <h2>Verified asks recorded in the local ask log</h2>
+  <table><thead><tr><th>When</th><th>Intent</th><th>Result</th><th>Signal proof</th><th>Verified</th><th>Note</th></tr></thead>
+  <tbody><tr>
+  <td>2026-11-11T09:24:19.156Z</td><td>CRYPTO_PRICE_USD</td><td>HTTP 200</td>
+  <td><a href="https://devnode.telegraphprotocol.com/engine/v1/signal/0x6b6a32da1b7fd3fb4c9237366b48e2bd74df5e718bdd66f1d8b44a2c9046ce8e" target="_blank" rel="noopener">0x6b6a32da…46ce8e</a></td>
+  <td>true ✅</td><td>ok</td></tr></tbody></table>
+<footer>Every score links to its signal_hash for independent re-verification. Testnet only.</footer>
+</body></html>

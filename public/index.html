@@ -47,6 +47,13 @@
       <thead><tr><th>When</th><th>Task</th><th>Score</th><th>Cost</th><th>Signal proof</th><th>Verified</th></tr></thead>
       <tbody></tbody>
     </table>
+    <p class="sub">Batch results: <a href="leaderboard.html">published leaderboard</a> (from <code>agent.mjs</code> runs over the fixed
+    <code>evalset.json</code>, rendered by <code>publish.mjs</code>) — until the first agent run lands, that page shows this rig's verified ask log.</p>
+  </section>
+
+  <section id="log-panel">
+    <h2>Recent asks from this rig <span class="price">(local server log — works offline)</span></h2>
+    <div id="log-list" class="out">Loading local ask log…</div>
   </section>
 
   <section id="feed-panel">

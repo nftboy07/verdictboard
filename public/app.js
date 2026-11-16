@@ -93,3 +93,19 @@ $("ev-fire").addEventListener("click", async () => {
     renderBoard();
   }
 });
+
+/* ---- local ask log (server-side record; renders even when the node is down) */
+async function loadLog() {
+  const el = $("log-list");
+  try {
+    const r = await fetch("/api/log");
+    const j = await r.json();
+    const entries = j.entries ?? [];
+    if (!entries.length) { el.textContent = "No asks logged yet."; return; }
+    el.innerHTML = entries.slice().reverse().map((e) => `
+      <div>${esc(e.at)} · <strong>${esc(e.intent)}</strong> · HTTP ${esc(e.http_status ?? "—")} ·
+      ${e.signal_hash ? `signal <a href="${NODE}/engine/v1/signal/${esc(e.signal_hash)}" target="_blank" rel="noopener">${short(e.signal_hash)}</a> · ` : ""}
+      verified: ${e.verified === true ? "true ✅" : esc(e.verified ?? "—")}${e.note ? ` · ${esc(e.note)}` : ""}</div>`).join("");
+  } catch { el.textContent = "Local ask log unavailable (is server.mjs running?)"; }
+}
+loadLog();
