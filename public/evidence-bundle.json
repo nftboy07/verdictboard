@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T13:56:27.545Z",
+  "generated_at": "2026-11-18T11:12:22.872Z",
   "source_results": null,
   "source_log": "/home/hatch/workspace/telegraph-hackathon/verdictboard/data/ask-log.jsonl",
   "aggregate": {
@@ -26,6 +26,173 @@
       "receipt_hash": "0x677377d634a4a69358fc02d8e8a31d0d5d1883013317113a976432950e42581d",
       "verified": true,
       "note": "ok"
+    },
+    {
+      "at": "2026-11-16T14:47:25.264Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "What is 17 + 25?",
+        "output": "The answer is 42."
+      },
+      "http_status": 200,
+      "signal_hash": "0x73ff529b2488bec70fe60143ce259b244837b54c4cefc9e7d536672decaa2802",
+      "receipt_hash": "0x0a0ad8ea6356d311f70e7beebad5d300ac6a7ba249af7165793795f007e267f2",
+      "verified": true,
+      "note": "ok"
+    },
+    {
+      "at": "2026-11-17T02:13:08.844Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "What is 17 + 25?",
+        "output": "The answer is 42."
+      },
+      "http_status": 200,
+      "signal_hash": "0x802ea4eb055785eaf87b6003e2511ce03786b41eafc396a86b571e3a22423598",
+      "receipt_hash": "0x8b306c2942d3529486285a5df68664b23beb11167a4db6553ccc447526c55b68",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T02:13:55.345Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "What is 17 + 25?",
+        "output": "17 + 25 = 32."
+      },
+      "http_status": 200,
+      "signal_hash": "0xef81bea9d7eb844920b3eac1bae94f9d4d425e764af9511fb8e51a2da2d59893",
+      "receipt_hash": "0xb18239c313cb9c55cff7d7a461f6c8f3ee34dd1e5e582b0c6184817d6fcbea62",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T02:15:10.371Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "A train travels 120 km in 1.5 hours. What is its average speed in km/h? Show the calculation.",
+        "output": "Average speed = distance / time = 120 / 1.5 = 80 km/h."
+      },
+      "http_status": 200,
+      "signal_hash": "0x3f8af761879c15b4f618d805c79a6e3ebfe10be96ac863fa1d974691e5c1d228",
+      "receipt_hash": "0x100c26ab8753a1017193e3a74a13d73a89a55f56e38e14d0b738d33c9c967cf1",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T02:15:57.698Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "A train travels 120 km in 1.5 hours. What is its average speed in km/h? Show the calculation.",
+        "output": "The train's average speed is 180 km/h because 120 times 1.5 is 180."
+      },
+      "http_status": 200,
+      "signal_hash": "0xabcf2f421ba0f12481e581c52a4f9ec92450bea8eb3e6d68e0644b7c11cbb582",
+      "receipt_hash": "0x4e113b8451eccb96c6dcebdf1a37dad0027d837021af73910bb785b568f7ea03",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T02:16:41.046Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "What is the capital of Australia, and what is its approximate population?",
+        "output": "The capital of Australia is Canberra, with a population of roughly 460,000–470,000."
+      },
+      "http_status": 200,
+      "signal_hash": "0xbe6730c6b3b7983f25d9bceca0cce19032e69b7334edeeb5ec6c9318818f59d8",
+      "receipt_hash": "0x26a6190ee722baf2be4eee2427c8c0c289a79367f01cb7c65f0e5d8d4edb4188",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T02:17:22.161Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "What is the capital of Australia, and what is its approximate population?",
+        "output": "The capital of Australia is Sydney, its largest city."
+      },
+      "http_status": 200,
+      "signal_hash": "0x66bb29e6f5a870d89612dc143963cbfa8345d51e2f1b9821b2b765fcefdc2b26",
+      "receipt_hash": "0x4d574561de2728ba4b23e18c3fd4e54c4ed12ed7ef164ca5c9e6a2db1829d051",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T02:18:03.451Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?",
+        "output": "The ball costs $0.10."
+      },
+      "http_status": 200,
+      "signal_hash": "0x91a9e916f332dcf4bc55d3bad73f8e6ab053562970c6144fb3485c18cdf7dee6",
+      "receipt_hash": "0x3d590d1979e14baf6a971af7d5b02656e992e3aac13b6cb5c6ca54ea9bad3661",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T02:18:58.831Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?",
+        "output": "Let the ball cost x. Then the bat costs x + 1.00 and 2x + 1.00 = 1.10, so x = 0.05. The ball costs $0.05."
+      },
+      "http_status": 200,
+      "signal_hash": "0x8b5da7b845021ed3c977ff18523e752dc49f42070706f8cd0f8901a8a983ca06",
+      "receipt_hash": "0x47308eeddcdfd62f1d4685349db00183662be831da64c18ad6f33a837674350b",
+      "verified": null,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T03:17:24.165Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "What is 17 + 25?",
+        "output": "The answer is 42."
+      },
+      "http_status": 200,
+      "signal_hash": "0x753bf0539386790665d1fea86a861d172a789121eebc82f59793a40f0563c4c9",
+      "receipt_hash": "0xb2be96dfff17e03d75a4d8aa500157bb75727b58d2dc4e709a289b3aa5c9f644",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T03:18:30.473Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "What is 17 + 25?",
+        "output": "17 + 25 = 32."
+      },
+      "http_status": 200,
+      "signal_hash": "0x7396302ec3f7debd696a6094e6eaa018fffa4ea6a95e5a2e90f8d779b3f57afd",
+      "receipt_hash": "0xf9130e3bfddcb08447195bb3b4ab16e0540860cdf4204b177ae449f70e4f67b2",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
+    },
+    {
+      "at": "2026-11-17T03:19:10.044Z",
+      "intent": "LLM_OUTPUT_EVALUATION_GENERAL",
+      "params": {
+        "task": "A train travels 120 km in 1.5 hours. What is its average speed in km/h? Show the calculation.",
+        "output": "Average speed = distance / time = 120 / 1.5 = 80 km/h."
+      },
+      "http_status": 200,
+      "signal_hash": "0x403503fd23f7e10964199a2b18ecbad8bc9d339b2d6ff4f3ed07cad4262ee941",
+      "receipt_hash": "0x51c8ef01dc8f7d3f3349f02f2941b840a683f60d5a4fd66629da1b10c5739ef0",
+      "verified": true,
+      "note": "agent run",
+      "via": "agent"
     }
   ]
 }
